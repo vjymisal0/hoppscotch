@@ -13,8 +13,7 @@ export const toFormData = (values: FormDataEntry[]) => {
         key,
         new Blob([value], {
           type: contentType,
-        }),
-        key
+        })
       )
 
       return

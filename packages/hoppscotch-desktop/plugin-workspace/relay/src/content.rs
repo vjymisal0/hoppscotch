@@ -233,27 +233,36 @@ impl<'a> ContentHandler<'a> {
                     } => {
                         tracing::debug!(
                             key = %key,
-                            filename = %filename,
+                            filename = ?filename,
                             content_type = ?content_type,
                             data_length = data.len(),
                             "Adding form file field"
                         );
-                        form.part(key)
-                            .buffer(&filename, data.to_vec())
-                            .content_type(&content_type.to_string())
+
+                        let mut part = form.part(key);
+                        if let Some(filename) = filename {
+                            part.buffer(filename, data.to_vec());
+                        } else {
+                            part.contents(data);
+                        }
+
+                        part.content_type(&content_type.to_string())
                             .add()
                             .map_err(|e| {
                                 tracing::error!(
                                     error = %e,
                                     key = %key,
-                                    filename = %filename,
+                                    filename = ?filename,
                                     "Failed to add form file field"
                                 );
                                 RelayError::Network {
-                                    message: format!(
-                                        "Failed to add form file field: {} ({})",
-                                        key, filename
-                                    ),
+                                    message: match filename {
+                                        Some(filename) => format!(
+                                            "Failed to add form file field: {} ({})",
+                                            key, filename
+                                        ),
+                                        None => format!("Failed to add form file field: {}", key),
+                                    },
                                     cause: Some(e.to_string()),
                                 }
                             })?;

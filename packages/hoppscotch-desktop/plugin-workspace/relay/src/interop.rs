@@ -132,7 +132,7 @@ pub enum FormValue {
     Text { value: String },
     #[serde(rename_all = "camelCase")]
     File {
-        filename: String,
+        filename: Option<String>,
         content_type: MediaType,
         data: Bytes,
     },

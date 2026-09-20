@@ -88,7 +88,7 @@ export type StatusCode =
 
 export type FormDataValue =
   | { kind: "text"; value: string }
-  | { kind: "file"; filename: string; contentType: string; data: Uint8Array }
+  | { kind: "file"; filename?: string; contentType: string; data: Uint8Array }
 
 export enum MediaType {
   TEXT_PLAIN = "text/plain",
@@ -717,7 +717,9 @@ const makeFormDataSerializable = async (
       const buffer = await value.arrayBuffer()
       const fileEntry: FormDataValue = {
         kind: "file",
-        filename: value instanceof File ? value.name : "unknown",
+        ...(value instanceof File && value.name !== "blob"
+          ? { filename: value.name }
+          : {}),
         contentType: value.type || "application/octet-stream",
         data: new Uint8Array(buffer),
       }
